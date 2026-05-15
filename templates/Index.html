@@ -208,19 +208,36 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;displ
 
     <!-- User section — populated by Flask template vars -->
     <div class="nav-user">
-      <div class="user-avatar" id="user-avatar-el">
-        {% if user and user.avatar_url %}
-          <img src="{{ user.avatar_url }}" alt="avatar"/>
-        {% else %}
-          {{ (user.full_name or 'DN')[0:2]|upper if user else 'DN' }}
-        {% endif %}
-      </div>
-      <div class="user-info">
-        <div class="user-name">{{ user.full_name or user.email or 'Analyst' if user else 'Guest' }}</div>
-        <div class="user-role">{{ user.email if user else '' }}</div>
-      </div>
-      <button class="logout-btn" onclick="doLogout()" title="Logout">✕</button>
+  <div class="user-avatar" id="user-avatar-el">
+    {% if user %}
+      {% if user.avatar_url %}
+        <img src="{{ user.avatar_url }}" alt="avatar"/>
+      {% else %}
+        {{ (user.full_name or 'DN')[:2] | upper }}
+      {% endif %}
+    {% else %}
+      DN
+    {% endif %}
+  </div>
+
+  <div class="user-info">
+    <div class="user-name">
+      {% if user %}
+        {{ user.full_name or user.email or 'Analyst' }}
+      {% else %}
+        Guest
+      {% endif %}
     </div>
+
+    <div class="user-role">
+      {% if user %}
+        {{ user.email }}
+      {% endif %}
+    </div>
+  </div>
+
+  <button class="logout-btn" onclick="doLogout()" title="Logout">✕</button>
+</div>
   </nav>
 
   <!-- ══ CENTRE ══ -->
