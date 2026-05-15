@@ -1,0 +1,11 @@
+flask
+flask-cors
+flask-sqlalchemy
+authlib
+stripe
+sendgrid
+groq
+pandas
+numpy
+python-dotenv
+werkzeug
