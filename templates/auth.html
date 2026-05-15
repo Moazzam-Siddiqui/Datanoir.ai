@@ -215,8 +215,10 @@
         // Show the success state briefly so the user gets visual feedback
         document.getElementById('procView').style.display = 'none';
         showSuccess(session?.user || {});
-        setTimeout(() => { window.location.href = data.redirect || '/dashboard'; }, 900);
-      } else {
+       setTimeout(() => {
+  window.history.replaceState({}, document.title, "/auth");
+  window.location.href = data.redirect || '/dashboard';
+}, 900);} else {
         document.getElementById('procView').style.display = 'none';
         document.getElementById('signInView').style.display = 'block';
         showErr(data.error || 'Authentication failed. Please try again.');
