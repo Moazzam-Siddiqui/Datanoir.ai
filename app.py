@@ -95,9 +95,13 @@ def auth_page():
     return render_template("auth.html", supabase_url=SUPABASE_URL, supabase_key=SUPABASE_KEY)
 
 @app.route("/dashboard")
-@require_auth
 def dashboard():
-    return render_template("index.html", user=get_current_user())
+    return "<h1>DASHBOARD WORKS</h1>"
+
+# @app.route("/dashboard")
+# @require_auth
+# def dashboard():
+#     return render_template("index.html", user=get_current_user())
 
 
 # ── Auth API ──────────────────────────────────────────────────────────────────
