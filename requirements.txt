@@ -9,3 +9,6 @@ pandas
 numpy
 python-dotenv
 werkzeug
+gunicorn
+openpyxl
+requests
