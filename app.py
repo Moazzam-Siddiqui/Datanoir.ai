@@ -97,7 +97,7 @@ def auth_page():
 @app.route("/dashboard")
 @require_auth
 def dashboard():
-    return "AUTH WORKS"
+    return render_template("index.html")
 
 # @app.route("/dashboard")
 # @require_auth
