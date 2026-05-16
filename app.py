@@ -15,7 +15,11 @@ from functools import wraps
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder="templates",
+    static_folder="static"
+)
 # Scope CORS to your own origin in production via the CORS_ORIGINS env var
 _cors_origins = os.environ.get("CORS_ORIGINS", "*")
 CORS(app, origins=_cors_origins)
