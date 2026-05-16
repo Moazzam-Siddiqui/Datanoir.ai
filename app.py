@@ -101,11 +101,11 @@ def auth_page():
 @app.route("/dashboard")
 @require_auth
 def dashboard():
-    return render_template("dashboard.html", user=get_current_user())
+    return render_template("Index.html", user=get_current_user())
 
 @app.route("/test")
 def test():
-    return render_template("dashboard.html")
+    return render_template("Index.html")
 
 
 # ── Auth API ──────────────────────────────────────────────────────────────────
@@ -143,7 +143,7 @@ def me():
     return jsonify({"authenticated": True, "user": user})
 @app.route("/raw")
 def raw():
-    with open("templates/dashboard.html", "r", encoding="utf-8") as f:
+    with open("templates/Index.html", "r", encoding="utf-8") as f:
         return f.read()
 
 # ── Data helpers ──────────────────────────────────────────────────────────────
