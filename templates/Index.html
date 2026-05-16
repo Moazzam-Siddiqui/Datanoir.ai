@@ -1,12 +1,608 @@
+ 
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Dashboard</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Datanoir.ai — Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.27.0/plotly.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:    #0f0f0f;
+  --bg2:   #141414;
+  --bg3:   #1a1a1a;
+  --bg4:   #1f1f1f;
+  --b:     #242424;
+  --b2:    #2e2e2e;
+  --acc:   #7c6aff;
+  --acc2:  #3de0c8;
+  --acc3:  #ff6b6b;
+  --acc4:  #ffd166;
+  --text:  #e8e8e8;
+  --muted: #666;
+  --dim:   #444;
+}
+
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;display:flex;flex-direction:column}
+
+/* ── MOBILE WALL ── */
+.mobile-wall{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:1rem;text-align:center;padding:2rem}
+.mobile-wall h2{font-size:1.1rem;font-weight:500}
+.mobile-wall p{font-size:0.82rem;color:var(--muted);line-height:1.6;max-width:280px}
+.mobile-icon{font-size:2.5rem;opacity:0.4;font-family:'JetBrains Mono',monospace}
+@media(max-width:900px){.mobile-wall{display:flex}.app-shell{display:none!important}}
+
+/* ── SHELL ── */
+.app-shell{flex:1;display:flex;overflow:hidden}
+
+/* ══════════ LEFT NAV ══════════ */
+.left-nav{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--b);display:flex;flex-direction:column;overflow:hidden}
+.nav-logo{height:52px;min-height:52px;padding:0 1.25rem;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--b)}
+.logo-mark{width:28px;height:28px;border-radius:7px;background:var(--acc);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;color:#fff}
+.logo-text{font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:700;color:var(--text)}
+.logo-text span{color:var(--acc2)}
+
+.nav-scroll{flex:1;overflow-y:auto;padding:1rem 0.75rem;display:flex;flex-direction:column;gap:1.5rem}
+.nav-section-label{font-family:'JetBrains Mono',monospace;font-size:0.52rem;letter-spacing:2px;color:var(--dim);text-transform:uppercase;padding:0 0.5rem;margin-bottom:0.35rem}
+.nav-items{display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:0.42rem 0.6rem;border-radius:6px;font-size:0.78rem;color:var(--muted);cursor:pointer;transition:all 0.15s;border:1px solid transparent;text-decoration:none}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--text);background:var(--bg4);border-color:var(--b2)}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.nav-dot.acc{background:var(--acc)}.nav-dot.acc2{background:var(--acc2)}.nav-dot.acc3{background:var(--acc3)}.nav-dot.acc4{background:var(--acc4)}
+
+.nav-upload{margin:0 0.25rem;border:1.5px dashed var(--b2);border-radius:8px;padding:1rem 0.75rem;text-align:center;cursor:pointer;position:relative;transition:all 0.2s;background:rgba(124,106,255,0.02)}
+.nav-upload:hover,.nav-upload.drag{border-color:var(--acc);background:rgba(124,106,255,0.06)}
+.nav-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.nav-upload-icon{font-size:1.2rem;color:var(--acc);opacity:0.5;margin-bottom:0.3rem}
+.nav-upload p{font-size:0.68rem;color:var(--muted);line-height:1.5}
+.nav-upload strong{color:var(--text);font-weight:500}
+#file-name{font-size:0.62rem;color:var(--acc2);margin-top:0.3rem;font-family:'JetBrains Mono',monospace;word-break:break-all}
+
+.nav-user{border-top:1px solid var(--b);padding:0.85rem 1rem;display:flex;align-items:center;gap:10px}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:600;color:#fff;flex-shrink:0;overflow:hidden}
+.user-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:0.75rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:0.6rem;color:var(--muted);margin-top:1px}
+.logout-btn{font-size:0.6rem;color:var(--dim);background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:3px;transition:color 0.15s}
+.logout-btn:hover{color:var(--acc3)}
+
+/* ══════════ CENTRE ══════════ */
+.centre{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:52px;min-height:52px;background:var(--bg2);border-bottom:1px solid var(--b);display:flex;align-items:center;padding:0 1.5rem;gap:1rem}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--muted)}
+.breadcrumb span{color:var(--dim)}
+.breadcrumb .current{color:var(--text);font-weight:500}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:0.75rem}
+.topbar-pill{font-family:'JetBrains Mono',monospace;font-size:0.58rem;padding:3px 9px;border-radius:20px;border:1px solid var(--b2);color:var(--muted)}
+#dataset-info{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);background:var(--bg3);padding:3px 9px;border-radius:4px;border:1px solid var(--b)}
+.run-btn{padding:0.4rem 1rem;border-radius:6px;border:none;background:var(--acc);color:#fff;font-family:'Inter',sans-serif;font-size:0.75rem;font-weight:500;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.run-btn:hover:not(:disabled){opacity:0.88;box-shadow:0 0 16px rgba(124,106,255,0.3)}
+.run-btn:disabled{opacity:0.35;cursor:not-allowed}
+
+.stat-bar{display:flex;gap:1px;background:var(--b);border-bottom:1px solid var(--b);flex-shrink:0}
+.stat-tile{flex:1;background:var(--bg2);padding:0.9rem 1.25rem;display:flex;flex-direction:column;gap:4px;transition:background 0.15s}
+.stat-tile:hover{background:var(--bg3)}
+.stat-tile .s-label{font-size:0.62rem;color:var(--muted);letter-spacing:0.3px;font-weight:500}
+.stat-tile .s-val{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--text);line-height:1}
+.stat-tile .s-sub{font-size:0.62rem;color:var(--dim);margin-top:1px}
+.stat-tile .s-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px}
+
+.dash-area{flex:1;overflow-y:auto;padding:1.25rem}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.75rem;color:var(--muted);min-height:320px}
+.empty-glyph{font-size:2rem;opacity:0.2;font-family:'JetBrains Mono',monospace}
+.empty-state h2{font-size:0.88rem;font-weight:400}
+.empty-state p{font-size:0.75rem;line-height:1.6;text-align:center;max-width:280px;opacity:0.6}
+
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:1rem}
+.chart-card{background:var(--bg2);border:1px solid var(--b);border-radius:10px;overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s}
+.chart-card:hover{border-color:var(--b2);box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.chart-card.full-width{grid-column:1/-1}
+.chart-header{padding:0.9rem 1rem 0.3rem;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.chart-header-left{display:flex;flex-direction:column;gap:3px}
+.chart-title{font-size:0.8rem;font-weight:600;color:var(--text)}
+.chart-desc{font-size:0.65rem;color:var(--muted);line-height:1.4}
+.chart-type-badge{font-size:0.52rem;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:4px;background:var(--bg3);border:1px solid var(--b2);color:var(--dim);white-space:nowrap;margin-top:2px;flex-shrink:0}
+.chart-body{padding:0 0.3rem 0.3rem}
+
+.skeleton-card{background:var(--bg2);border:1px solid var(--b);border-radius:10px;height:280px;position:relative;overflow:hidden}
+.skeleton-card::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.02),transparent);animation:shim 1.8s infinite}
+@keyframes shim{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+/* ══════════ RIGHT PANEL ══════════ */
+.right-panel{width:280px;min-width:280px;background:var(--bg2);border-left:1px solid var(--b);display:flex;flex-direction:column;overflow:hidden}
+.rp-tabs{display:flex;border-bottom:1px solid var(--b);flex-shrink:0}
+.rp-tab{flex:1;padding:0.7rem;font-size:0.72rem;color:var(--muted);border:none;background:none;cursor:pointer;transition:all 0.15s;border-bottom:2px solid transparent;margin-bottom:-1px}
+.rp-tab.active{color:var(--text);border-bottom-color:var(--acc)}
+.rp-tab:hover:not(.active){color:var(--text)}
+.rp-pane{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:0.75rem}
+.rp-pane.hidden{display:none}
+
+.col-item{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:5px;font-size:0.68rem;font-family:'JetBrains Mono',monospace;background:var(--bg3);border:1px solid transparent;transition:border-color 0.15s}
+.col-item:hover{border-color:var(--b2)}
+.col-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.col-dot.num{background:var(--acc)}.col-dot.cat{background:var(--acc3)}.col-dot.date{background:var(--acc2)}
+.col-badge{font-size:0.52rem;padding:1px 5px;border-radius:3px;margin-left:auto;white-space:nowrap}
+.col-badge.num{background:rgba(124,106,255,0.12);color:var(--acc)}
+.col-badge.cat{background:rgba(255,107,107,0.12);color:var(--acc3)}
+.col-badge.date{background:rgba(61,224,200,0.12);color:var(--acc2)}
+
+.insight-chip{background:var(--bg3);border:1px solid var(--b);border-radius:8px;padding:0.65rem 0.8rem;display:flex;flex-direction:column;gap:5px;transition:border-color 0.15s}
+.insight-chip:hover{border-color:var(--b2)}
+.ic-header{display:flex;align-items:center;gap:6px;font-size:0.58rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.ic-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.ic-val{font-size:0.76rem;color:var(--text);line-height:1.45;word-break:break-word}
+
+.ask-pane{display:flex;flex-direction:column;gap:0.75rem;flex:1}
+.ask-pane textarea{background:var(--bg3);border:1px solid var(--b);border-radius:7px;color:var(--text);font-family:'Inter',sans-serif;font-size:0.78rem;padding:0.6rem 0.75rem;resize:none;height:72px;transition:border-color 0.2s;line-height:1.5;outline:none}
+.ask-pane textarea:focus{border-color:var(--acc)}
+.ask-submit{padding:0.55rem;border-radius:7px;border:1px solid var(--acc2);background:rgba(61,224,200,0.06);color:var(--acc2);font-family:'JetBrains Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.15s}
+.ask-submit:hover{background:rgba(61,224,200,0.14)}
+#ask-answer{font-size:0.76rem;color:var(--text);line-height:1.65;background:rgba(61,224,200,0.04);border-left:2px solid var(--acc2);padding:0.65rem 0.75rem;border-radius:0 6px 6px 0;display:none;flex:1}
+
+.status-bar{height:28px;min-height:28px;background:var(--bg2);border-top:1px solid var(--b);display:flex;align-items:center;padding:0 1.5rem;gap:1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--muted);flex-shrink:0}
+.status-dot{width:5px;height:5px;border-radius:50%;background:var(--acc2);animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.status-bar .sep{width:1px;height:12px;background:var(--b2)}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:4px}
+</style>
 </head>
 <body>
-  <h1>Dashboard Loaded Successfully</h1>
+
+<!-- Mobile wall -->
+<div class="mobile-wall">
+  <div class="mobile-icon">⊞</div>
+  <h2>Open on a laptop or desktop</h2>
+  <p>Datanoir.ai is a full dashboard — it needs a screen wider than 900px to work properly.</p>
+</div>
+
+<!-- App Shell -->
+<div class="app-shell">
+
+  <!-- ══ LEFT NAV ══ -->
+  <nav class="left-nav">
+    <div class="nav-logo">
+      <div class="logo-mark">DN</div>
+      <div class="logo-text">datanoir<span>.ai</span></div>
+    </div>
+
+    <div class="nav-scroll">
+      <div>
+        <div class="nav-section-label">Workspace</div>
+        <div class="nav-items">
+          <a class="nav-item active" href="/dashboard">
+            <span class="nav-dot acc"></span>Dashboard
+          </a>
+          <a class="nav-item" href="/">
+            <span class="nav-dot"></span>Home
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="nav-section-label">Dataset</div>
+        <div class="nav-upload" id="upload-zone">
+          <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.json"/>
+          <div class="nav-upload-icon">↑</div>
+          <p><strong>Drop file</strong><br/>CSV · Excel · JSON</p>
+          <div id="file-name"></div>
+        </div>
+      </div>
+
+      <div id="stats-nav" style="display:none">
+        <div class="nav-section-label">Quick stats</div>
+        <div class="nav-items">
+          <div class="nav-item"><span class="nav-dot acc2"></span><span id="sn-rows">—</span> rows</div>
+          <div class="nav-item"><span class="nav-dot acc"></span><span id="sn-cols">—</span> columns</div>
+          <div class="nav-item"><span class="nav-dot acc4"></span><span id="sn-num">—</span> numeric</div>
+          <div class="nav-item"><span class="nav-dot acc3"></span><span id="sn-date">—</span> date cols</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User section — populated by Flask template vars -->
+    <div class="nav-user">
+  <div class="user-avatar" id="user-avatar-el">
+    {% if user %}
+      {% if user.avatar_url %}
+        <img src="{{ user.avatar_url }}" alt="avatar"/>
+      {% else %}
+        {{ (user.full_name or 'DN')[:2] | upper }}
+      {% endif %}
+    {% else %}
+      DN
+    {% endif %}
+  </div>
+
+  <div class="user-info">
+    <div class="user-name">
+      {% if user %}
+        {{ user.full_name or user.email or 'Analyst' }}
+      {% else %}
+        Guest
+      {% endif %}
+    </div>
+
+    <div class="user-role">
+      {% if user %}
+        {{ user.email }}
+      {% endif %}
+    </div>
+  </div>
+
+  <button class="logout-btn" onclick="doLogout()" title="Logout">✕</button>
+</div>
+  </nav>
+
+  <!-- ══ CENTRE ══ -->
+  <div class="centre">
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span>Datanoir</span>
+        <span>/</span>
+        <span class="current">Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-pill">GROQ · LLAMA 3.3</span>
+        <span id="dataset-info">no dataset loaded</span>
+        <button class="run-btn" id="analyse-btn" disabled>▶ Run Analysis</button>
+      </div>
+    </div>
+
+    <div class="stat-bar">
+      <div class="stat-tile"><div class="s-label">Rows</div><div class="s-val" id="st-rows">—</div><div class="s-sub">total records</div></div>
+      <div class="stat-tile"><div class="s-label">Columns</div><div class="s-val" id="st-cols">—</div><div class="s-sub">features</div></div>
+      <div class="stat-tile"><div class="s-label">Numeric</div><div class="s-val" id="st-num">—</div><div class="s-sub"><span class="s-dot" style="background:var(--acc)"></span>analysable</div></div>
+      <div class="stat-tile"><div class="s-label">Date cols</div><div class="s-val" id="st-date">—</div><div class="s-sub"><span class="s-dot" style="background:var(--acc2)"></span>time series</div></div>
+      <div class="stat-tile"><div class="s-label">Nulls</div><div class="s-val" id="st-nulls">—</div><div class="s-sub">missing values</div></div>
+    </div>
+
+    <div class="dash-area" id="dash-area">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-glyph">◈</div>
+        <h2>No data loaded</h2>
+        <p>Upload a CSV, Excel, or JSON file using the sidebar, then click Run Analysis.</p>
+      </div>
+      <div class="chart-grid" id="chart-grid" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT PANEL ══ -->
+  <div class="right-panel">
+    <div class="rp-tabs">
+      <button class="rp-tab active" onclick="switchPanel('columns')">Columns</button>
+      <button class="rp-tab" onclick="switchPanel('insights')">Insights</button>
+      <button class="rp-tab" onclick="switchPanel('ask')">Ask AI</button>
+    </div>
+    <div class="rp-pane" id="pane-columns">
+      <div style="font-size:0.7rem;color:var(--muted);line-height:1.5">Upload a dataset to see column types.</div>
+    </div>
+    <div class="rp-pane hidden" id="pane-insights">
+      <div style="font-size:0.7rem;color:var(--muted);line-height:1.5">Run analysis to see key insights.</div>
+    </div>
+    <div class="rp-pane hidden" id="pane-ask">
+      <div class="ask-pane">
+        <div style="font-size:0.7rem;color:var(--muted);line-height:1.5">Ask anything about your dataset in natural language.</div>
+        <textarea id="ask-input" placeholder="e.g. What's the average value after 2020?"></textarea>
+        <button class="ask-submit" id="ask-btn">↗ Ask</button>
+        <div id="ask-answer"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ STATUS BAR ══ -->
+<div class="status-bar">
+  <div class="status-dot"></div>
+  <span id="status-text">ready</span>
+  <div class="sep"></div>
+  <span id="status-detail" style="opacity:0.5"></span>
+  <span style="margin-left:auto;opacity:0.35">datanoir.ai v1</span>
+</div>
+
+<script>
+  {% raw %}
+const API = '';
+let profile = null;
+
+const BASE_LAYOUT = {
+  paper_bgcolor:'transparent', plot_bgcolor:'transparent',
+  font:{family:'JetBrains Mono,monospace',color:'#555',size:10},
+  margin:{t:10,r:14,b:42,l:50},
+  xaxis:{gridcolor:'#1e1e1e',zerolinecolor:'#252525',color:'#555',tickfont:{size:9}},
+  yaxis:{gridcolor:'#1e1e1e',zerolinecolor:'#252525',color:'#555',tickfont:{size:9}},
+  legend:{bgcolor:'transparent',bordercolor:'#242424',font:{size:10}},
+  colorway:['#7c6aff','#3de0c8','#ff6b6b','#ffd166','#06d6a0','#118ab2','#ef476f'],
+};
+const CONFIG = {displayModeBar:false,responsive:true};
+
+function setStatus(msg,detail=''){
+  document.getElementById('status-text').textContent=msg;
+  document.getElementById('status-detail').textContent=detail;
+}
+
+function switchPanel(name){
+  ['columns','insights','ask'].forEach(p=>{
+    document.getElementById('pane-'+p).classList.toggle('hidden',p!==name);
+  });
+  document.querySelectorAll('.rp-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['columns','insights','ask'][i]===name);
+  });
+}
+
+// ── Upload ─────────────────────────────────────────────────────────────────
+const uploadZone = document.getElementById('upload-zone');
+const fileInput  = document.getElementById('file-input');
+uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('drag')});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('drag');if(e.dataTransfer.files[0])uploadFile(e.dataTransfer.files[0])});
+fileInput.addEventListener('change',()=>{if(fileInput.files[0])uploadFile(fileInput.files[0])});
+
+async function uploadFile(file){
+  document.getElementById('file-name').textContent=file.name;
+  setStatus('uploading…',file.name);
+
+  // ── JSON files: read as text and POST to /upload-json ──────────────────
+  if(file.name.toLowerCase().endsWith('.json')){
+    try{
+      const text = await file.text();
+      let parsed;
+      try{ parsed = JSON.parse(text); }
+      catch(e){ setStatus('upload failed', 'Invalid JSON — could not parse file'); return; }
+
+      const r = await fetch('/upload-json',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(parsed),
+      });
+      if(r.redirected || r.status===302){window.location.href='/auth';return;}
+      const d = await r.json();
+      if(d.error){setStatus('upload failed', d.error); return;}
+      onUploadSuccess(d, file.name);
+    }catch(e){
+      setStatus('upload failed', e.message);
+    }
+    return;
+  }
+
+  // ── CSV / Excel: send as FormData ──────────────────────────────────────
+  const fd=new FormData(); fd.append('file',file);
+  const r=await fetch('/upload',{method:'POST',body:fd});
+  if(r.redirected || r.status===302){window.location.href='/auth';return;}
+  const d=await r.json();
+  if(d.error){setStatus('upload failed',d.error);return;}
+  onUploadSuccess(d, file.name);
+}
+
+// ── Shared post-upload handler ─────────────────────────────────────────────
+function onUploadSuccess(d, fileName){
+  profile=d.profile;
+  const [rows,cols]=[d.shape[0],d.shape[1]];
+  const numC=(d.profile.numeric_cols||[]).length;
+  const dateC=(d.profile.date_cols||[]).length;
+  const nullTotal=Object.values(d.profile.null_counts||{}).reduce((a,b)=>a+b,0);
+
+  document.getElementById('dataset-info').textContent=`${rows.toLocaleString()} × ${cols}  ·  ${fileName}`;
+  document.getElementById('st-rows').textContent=rows.toLocaleString();
+  document.getElementById('st-cols').textContent=cols;
+  document.getElementById('st-num').textContent=numC;
+  document.getElementById('st-date').textContent=dateC;
+  document.getElementById('st-nulls').textContent=nullTotal.toLocaleString();
+  document.getElementById('sn-rows').textContent=rows.toLocaleString();
+  document.getElementById('sn-cols').textContent=cols;
+  document.getElementById('sn-num').textContent=numC;
+  document.getElementById('sn-date').textContent=dateC;
+  document.getElementById('stats-nav').style.display='';
+
+  const cp=document.getElementById('pane-columns');
+  cp.innerHTML='';
+  const numSet=new Set(d.profile.numeric_cols||[]);
+  const dateSet=new Set(d.profile.date_cols||[]);
+  d.columns.forEach(col=>{
+    const kind=dateSet.has(col)?'date':numSet.has(col)?'num':'cat';
+    const lbl=dateSet.has(col)?'date':numSet.has(col)?(d.profile.dtypes[col]||'num'):'cat';
+    const div=document.createElement('div');
+    div.className='col-item';
+    div.innerHTML=`<span class="col-dot ${kind}"></span><span style="flex:1">${col}</span><span class="col-badge ${kind}">${lbl}</span>`;
+    cp.appendChild(div);
+  });
+  document.getElementById('analyse-btn').disabled=false;
+  setStatus('ready',`${fileName} loaded`);
+}
+
+// ── Analyse ────────────────────────────────────────────────────────────────
+document.getElementById('analyse-btn').addEventListener('click',runAnalysis);
+
+async function runAnalysis(){
+  const btn=document.getElementById('analyse-btn');
+  btn.disabled=true; btn.textContent='▶ Running…';
+  document.getElementById('empty-state').style.display='none';
+  const grid=document.getElementById('chart-grid');
+  grid.style.display=''; grid.innerHTML='';
+  for(let i=0;i<8;i++){const sk=document.createElement('div');sk.className='skeleton-card';grid.appendChild(sk);}
+  setStatus('building analysis…');
+
+  let d;
+  try {
+    const r=await fetch('/analyse',{method:'POST'});
+    d=await r.json();
+  } catch(e) {
+    setStatus('failed','Network error — please try again.');
+    btn.disabled=false; btn.textContent='▶ Run Analysis'; return;
+  }
+  if(d.error){setStatus('failed',d.error);btn.disabled=false;btn.textContent='▶ Run Analysis';return;}
+
+  grid.innerHTML='';
+  setStatus('rendering…',`${d.charts.length} charts`);
+  d.charts.forEach((chart,i)=>{
+    const wide=chart.data.type==='heatmap';
+    const card=document.createElement('div');
+    card.className='chart-card'+(wide?' full-width':'');
+    card.innerHTML=`
+      <div class="chart-header">
+        <div class="chart-header-left">
+          <div class="chart-title">${chart.title}</div>
+          <div class="chart-desc">${chart.description||''}</div>
+        </div>
+        <span class="chart-type-badge">${chart.data.type||''}</span>
+      </div>
+      <div class="chart-body"><div id="plot-${i}" style="height:260px"></div></div>`;
+    grid.appendChild(card);
+    setTimeout(()=>renderChart(`plot-${i}`,chart),i*55);
+  });
+
+  buildInsights(d.charts,profile);
+  setStatus('done',`${d.charts.length} charts rendered`);
+  btn.disabled=false; btn.textContent='▶ Run Analysis';
+}
+
+// ── Insights ───────────────────────────────────────────────────────────────
+function buildInsights(charts,prof){
+  const pane=document.getElementById('pane-insights');
+  pane.innerHTML='';
+  const chips=[];
+  if(prof&&prof.numeric_stats){
+    Object.entries(prof.numeric_stats).slice(0,6).forEach(([col,s])=>{
+      if(s.mean!=null) chips.push({label:col,color:'#7c6aff',val:`mean ${fmt(s.mean)} · range ${fmt(s.min)}–${fmt(s.max)}`});
+    });
+  }
+  if(prof&&prof.date_ranges){
+    Object.entries(prof.date_ranges).forEach(([col,r])=>{
+      chips.push({label:col+' span',color:'#3de0c8',val:`${(r.min||'').slice(0,10)} → ${(r.max||'').slice(0,10)}`});
+    });
+  }
+  const hm=charts.find(c=>c.data&&c.data.type==='heatmap');
+  if(hm&&hm.data.matrix){
+    const lb=hm.data.labels,mx=hm.data.matrix;
+    let max=-1,pair='';
+    for(let i=0;i<lb.length;i++) for(let j=i+1;j<lb.length;j++){const v=Math.abs(mx[i][j]);if(v>max&&v<1){max=v;pair=`${lb[i]} ↔ ${lb[j]}`;}}
+    if(pair) chips.push({label:'top correlation',color:'#ffd166',val:`${pair}  (r=${max.toFixed(2)})`});
+  }
+  if(prof&&prof.shape) chips.push({label:'dataset',color:'#06d6a0',val:`${prof.shape[0].toLocaleString()} rows · ${prof.shape[1]} cols · ${(prof.numeric_cols||[]).length} numeric`});
+  if(!chips.length){pane.innerHTML='<div style="font-size:0.7rem;color:var(--muted)">No insights found.</div>';return;}
+  chips.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='insight-chip';
+    el.innerHTML=`<div class="ic-header"><div class="ic-dot" style="background:${c.color}"></div>${c.label}</div><div class="ic-val">${c.val}</div>`;
+    pane.appendChild(el);
+  });
+  switchPanel('insights');
+}
+
+function fmt(n){
+  if(n==null) return '—';
+  const a=Math.abs(n);
+  if(a>=1e9) return (n/1e9).toFixed(1)+'B';
+  if(a>=1e6) return (n/1e6).toFixed(1)+'M';
+  if(a>=1e3) return (n/1e3).toFixed(1)+'K';
+  if(a<1&&a>0) return n.toFixed(4);
+  return n.toFixed(2);
+}
+
+function isDate(a){return a&&a.length&&a.filter(v=>v!=null).slice(0,5).every(v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}/.test(v))}
+function isNum(a){return a&&a.length&&a.filter(v=>v!=null).slice(0,5).every(v=>typeof v==='number')}
+function aType(a){return isDate(a)?'date':isNum(a)?'linear':'category'}
+
+// ── Renderer ───────────────────────────────────────────────────────────────
+function renderChart(id,chart){
+  const el=document.getElementById(id); if(!el) return;
+  const d=chart.data;
+  if(d.error){el.innerHTML=`<div style="padding:1rem;color:var(--muted);font-size:0.7rem">⚠ ${d.error}</div>`;return;}
+  const L=JSON.parse(JSON.stringify(BASE_LAYOUT)); L.title='';
+  try{
+    if(d.type==='heatmap'){
+      Plotly.newPlot(el,[{type:'heatmap',z:d.matrix,x:d.labels,y:d.labels,
+        colorscale:[[0,'#ff6b6b'],[0.5,'#1a1a1a'],[1,'#7c6aff']],
+        zmin:-1,zmax:1,text:d.matrix.map(r=>r.map(v=>v.toFixed(2))),
+        texttemplate:'%{text}',showscale:true}],
+        {...L,margin:{t:20,r:90,b:90,l:90},height:380,
+          xaxis:{...L.xaxis,type:'category',tickangle:-35},yaxis:{...L.yaxis,type:'category'}},CONFIG);
+    } else if(d.type==='histogram'){
+      if(d.categorical){
+        Plotly.newPlot(el,[{type:'bar',x:d.edges,y:d.counts,marker:{color:'#7c6aff',opacity:0.85},name:d.col}],
+          {...L,bargap:0.1,xaxis:{...L.xaxis,type:'category'},yaxis:{...L.yaxis,type:'linear',title:{text:'count',font:{size:9}}}},CONFIG);
+      } else {
+        const x=d.edges.slice(0,-1).map((v,i)=>+((v+d.edges[i+1])/2).toFixed(6));
+        const w=d.edges.length>1?(d.edges[1]-d.edges[0])*0.95:1;
+        Plotly.newPlot(el,[{type:'bar',x,y:d.counts,width:Array(x.length).fill(w),offset:0,
+          marker:{color:'#7c6aff',opacity:0.85},name:d.col}],
+          {...L,bargap:0,xaxis:{...L.xaxis,type:'linear',title:{text:d.col,font:{size:9}}},
+            yaxis:{...L.yaxis,type:'linear',title:{text:'count',font:{size:9}}}},CONFIG);
+      }
+    } else if(d.type==='line'||d.type==='area'){
+      const tr=Object.entries(d.series||{}).map(([n,y])=>({
+        type:'scatter',mode:'lines',fill:d.type==='area'?'tozeroy':'none',x:d.x,y,name:n,
+        line:{width:n.includes('MA')?2:1.5,dash:n.includes('MA')?'dot':'solid'},
+        fillcolor:d.type==='area'?'rgba(124,106,255,0.05)':undefined}));
+      Plotly.newPlot(el,tr,{...L,xaxis:{...L.xaxis,type:aType(d.x)},yaxis:{...L.yaxis,type:'linear'}},CONFIG);
+    } else if(d.type==='bar'){
+      Plotly.newPlot(el,[{type:'bar',x:d.x,y:d.y,name:d.y_col||'',marker:{color:'#3de0c8',opacity:0.82}}],
+        {...L,bargap:0.15,xaxis:{...L.xaxis,type:'category'},yaxis:{...L.yaxis,type:'linear'}},CONFIG);
+    } else if(d.type==='scatter'){
+      Plotly.newPlot(el,[{type:'scatter',mode:'markers',x:d.x,y:d.y,
+        marker:{size:3.5,color:'#7c6aff',opacity:0.5},name:`${d.x_col||'x'} vs ${d.y_col||'y'}`}],
+        {...L,xaxis:{...L.xaxis,type:'linear',title:{text:d.x_col||'',font:{size:9}}},
+          yaxis:{...L.yaxis,type:'linear',title:{text:d.y_col||'',font:{size:9}}}},CONFIG);
+    } else if(d.type==='box'){
+      const tr=Object.entries(d.series||{}).map(([n,v])=>({type:'box',y:v,name:n,boxpoints:false,marker:{opacity:0.8}}));
+      Plotly.newPlot(el,tr,{...L,xaxis:{...L.xaxis,type:'category'},yaxis:{...L.yaxis,type:'linear'}},CONFIG);
+    } else {
+      el.innerHTML=`<div style="padding:1rem;color:var(--muted);font-size:0.7rem">Unknown: ${d.type}</div>`;
+    }
+  }catch(e){
+    el.innerHTML=`<div style="padding:1rem;color:#ff6b6b;font-size:0.7rem">Error: ${e.message}</div>`;
+  }
+}
+
+// ── Ask AI ─────────────────────────────────────────────────────────────────
+document.getElementById('ask-btn').addEventListener('click',async()=>{
+  const q=document.getElementById('ask-input').value.trim();
+  const ans=document.getElementById('ask-answer');
+  const btn=document.getElementById('ask-btn');
+  if(!q) return;
+
+  // Show loading state
+  btn.disabled=true;
+  btn.textContent='…';
+  ans.textContent='Thinking…';
+  ans.style.display='flex';   // must be flex so flex:1 from CSS applies
+  ans.style.opacity='0.4';
+  setStatus('thinking…',q.slice(0,40));
+
+  try{
+    const r=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+    const d=await r.json();
+    ans.textContent=d.answer||d.error||'—';
+    ans.style.opacity='1';
+  }catch(e){
+    ans.textContent='Network error — please try again.';
+    ans.style.opacity='1';
+  }finally{
+    btn.disabled=false;
+    btn.textContent='↗ Ask';
+    setStatus('ready');
+  }
+});
+document.getElementById('ask-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();document.getElementById('ask-btn').click();}
+});
+
+// ── Logout ─────────────────────────────────────────────────────────────────
+async function doLogout(){
+  const r = await fetch('/api/logout',{method:'POST'});
+  const d = await r.json();
+  window.location.href = d.redirect || '/';
+}
+  {% endraw %}
+</script>
 </body>
 </html>
-
-
-
