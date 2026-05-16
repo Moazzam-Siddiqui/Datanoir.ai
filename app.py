@@ -141,7 +141,10 @@ def me():
     if not user:
         return jsonify({"authenticated": False}), 401
     return jsonify({"authenticated": True, "user": user})
-
+@app.route("/raw")
+def raw():
+    with open("templates/dashboard.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 # ── Data helpers ──────────────────────────────────────────────────────────────
 
