@@ -98,6 +98,11 @@ def auth_page():
 @require_auth
 def dashboard():
     return render_template("index.html", user=get_current_user())
+
+@app.route("/test")
+def test():
+    return render_template("index.html")
+
 # @app.route("/dashboard")
 # @require_auth
 # def dashboard():
