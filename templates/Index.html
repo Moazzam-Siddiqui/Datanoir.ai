@@ -308,6 +308,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;displ
 </div>
 
 <script>
+  {% raw %}
 const API = '';
 let profile = null;
 
@@ -599,6 +600,7 @@ async function doLogout(){
   const d = await r.json();
   window.location.href = d.redirect || '/';
 }
+  {% endraw %}
 </script>
 </body>
 </html>
