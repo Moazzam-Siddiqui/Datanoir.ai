@@ -97,16 +97,11 @@ def auth_page():
 @app.route("/dashboard")
 @require_auth
 def dashboard():
-    return render_template("index.html", user=get_current_user())
+    return render_template("dashboard.html", user=get_current_user())
 
 @app.route("/test")
 def test():
-    return render_template("index.html")
-
-# @app.route("/dashboard")
-# @require_auth
-# def dashboard():
-#     return render_template("index.html", user=get_current_user())
+    return render_template("dashboard.html")
 
 
 # ── Auth API ──────────────────────────────────────────────────────────────────
