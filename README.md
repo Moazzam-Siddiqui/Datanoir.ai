@@ -1,6 +1,3 @@
-## License
+## Datanoir.ai
 
-This project is source-available for learning, research,
-and non-commercial use only.
-
-Commercial use requires explicit permission from the author.
+Live demo :  https://dashboard.render.com/web/srv-d83iu2rtqb8s73dq8f20/events
